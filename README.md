@@ -21,11 +21,22 @@ where:
 
 Basically, dividing number of attacks needed by enemies to kill party, by number of attacks needed by party to kill enemies, and then adjusted to the number of enemies, as 1 powerfull enemy is much difficult than 4 enemies with the same sum of HP and Attack.
 
-Estimation does not perfectly match simulation results, but serves as a rough guide. A result of >2 is easy win. 1-2 probable win with some struggle. 0-5-1 hard fight probable to loose. Bellow 0.5 almost sure loss
+Estimation does not perfectly match simulation results, but serves as a rough guide. A result of >2 is easy win. 1-2 probable win with some struggle. 0-5-1 hard fight probable to lose. Bellow 0.5 almost sure loss.
 
  
 
 ## Quest RPG
+
+Example actor's Hit Points and Attack according to Quest RPG book:
+- Player: 10 HP, 2 Attack (basic with weapon)
+
+- Commoners 2 HP, 1 Attack
+- Minions 4 HP, 2 Attack.
+- Bosses 10 HP, 4 Attack
+
+- Veteran: Add 4 HP and 1 attack (14/5 98%)
+- Big: Add 10 HP and 1 attack   (20/5 90% prob)
+- Colossal: Add 40 HP and 4 attack (50/8 1% prob)
 
 I am not related with Quest RPG creators at all.
 
