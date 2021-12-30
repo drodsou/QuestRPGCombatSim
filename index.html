@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <script src="questFightSimulator.js"></script>
+  <title>Quest RPG combat simulator</title>
+  <style>
+    body {
+      font-size: 14px;
+      font-family: sans-serif;
+      --color-high: hsl(0,100%,35%);
+    }
+    h1,h2 {
+      color: var(--color-high); 
+    }
+    #result, button {
+      font-size: 2rem;
+    }
+    #enemy,#party {
+      font-size: 2rem;
+      width: 100%;
+      min-height: 220px;
+    }
+    #dataContainer {
+      display: flex;
+    }
+    button {
+      font-size: 2rem;
+      color: white;
+      background-color: var(--color-high);
+    }
+
+  </style>
+</head>
+<body>
+  <h1>Quest RPG combat sim</h1>
+  On line for each member of party/enemies: eg 10,4 means 10 hp and 4 attack. 
+  <a href="https://google.com">Source in github</a>
+  
+  <div id="dataContainer">
+    
+    <div>
+      <h2>party</h2>
+      <textarea id="party">10,2&#10;10,2</textarea>   <!-- &#10; -->
+    </div>
+    <div>
+      <h2>enemy</h2>
+      <textarea id="enemy">10,2</textarea>    
+    </div>
+  </div>
+  <br><button id="go" onclick="fight()">Fight!</button><br>
+  <p id="result"></p>
+
+
+</body>
+<script>
+
+  function parseData(str, prefix) {
+    let data = str.trim().split('\n').map( (line, lineNum)=>{
+      let actorData = line.split(',')
+      return {
+        name: prefix+lineNum, 
+        hp: parseFloat(actorData[0]),
+        attack: parseFloat(actorData[1]),
+      }
+    });
+    return data;
+  }
+  function fight() {
+
+    let party = parseData(document.querySelector('#party').value,'p');
+    let enemy = parseData(document.querySelector('#enemy').value,'e');
+
+    let result = simulate(party,enemy);
+
+    let resultStr = '';
+    resultStr += `Party win chances: ${result.stats.party.winsPC}%<br>with ${result.stats.party.avgAlivePC}% alive`;
+    resultStr += `<br><br>(estimated: ${result.initStats.partyEstimatedWin})`;
+
+    document.querySelector("#result").innerHTML = resultStr;
+
+  }
+
+
+// let result = simulate([
+//     {name: 'p0', hp:10, attack:2},
+//     {name: 'p1', hp:10, attack:2},
+//     // // {name: 'p2', hp:10, attack:2},
+//     // // {name: 'p3', hp:10, attack:2}
+//   ], [
+//     {name: 'e0', hp:4, attack:2},
+//     {name: 'e0', hp:4, attack:2},
+//     {name: 'e0', hp:4, attack:2},
+//   ]);
+
+// // console.log(result);
+// document.querySelector("#result").innerHTML = `
+//   partyEstimatedWin: ${result.initStats.partyEstimatedWin}
+//   partyWins: ${result.stats.party.winsPC}% with ${result.stats.party.avgAlivePC}% alive
+// `;
+
+
+
+
+
+</script>
+</html>
