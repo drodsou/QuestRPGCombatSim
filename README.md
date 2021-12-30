@@ -7,11 +7,9 @@ A personal rough simulation of Quest RPG combat, to give an idea of how hard a c
 
 ## Manual estimation of difficulty
 
-Result includes simulation result and also a estimation number, useful for manual calculation in case of not having the simulator at hand, using this formula:
+Result includes first the simulation result, but also, for comparison, "Diff" following Quest RPG difficulty rating (combat section, pag.126), and then an alternative estimated probability for party to win, "WinProb", both, useful for manual calculation in case of not having the simulator at hand-
 
-`( ((pHP/eAt) / (eHP/pAt)) / pNum * eNum`
-
-where:
+Given:
 - pHP: sum of party HP
 - pAt: sum of party Attack
 - eHP: sum of enemies HP
@@ -19,9 +17,24 @@ where:
 - pNum: number of party members
 - eNum: number of enemies
 
-Basically, dividing number of attacks needed by enemies to kill party, by number of attacks needed by party to kill enemies, and then adjusted to the number of enemies, as 1 powerfull enemy is much difficult than 4 enemies with the same sum of HP and Attack.
+The formulas are as follow:
 
-Estimation does not perfectly match simulation results, but serves as a rough guide. A result of >2 is easy win. 1-2 probable win with some struggle. 0-5-1 hard fight probable to lose. Bellow 0.5 almost sure loss.
+## Manual estimation: book difficulty
+
+`(eHP+eAt+eNum)/pHP*100`
+
+Quoting from book: If the difficulty rating is roughly equal to 100% of party's HP, it is a deadly fight that will push their limits.If the difficulty rating is between 50% to 80% of the party's HP, it is still deadly, but should be a fair fight.
+
+## Manual estimation: alternative party win probability
+
+My own estimator, seen the the official estimation did not match simulation results too well in some cases:
+
+`(pHP/eAt) / (eHP/pAt) / pNum * eNum / 2`
+
+
+Basically, dividing number of attacks needed by enemies to kill party, by number of attacks needed by party to kill enemies, and then adjusted to the number of enemies, as seen in the simulations that 1 powerful enemy is much difficult than 4 enemies with the same sum of HP and Attack, contrary to what the book difficulty rating suggests. Finally divided by 2 as it was seen to match fit simulation results more directly.
+
+WinProb estimation does not perfectly match simulation results either, but serves as a better correlation with actual simulation results. A result of >1 is easy win. 0.5-1 probable win with some struggle. 0.25-0.50 hard fight probable to lose. Bellow 0.25 almost sure loss.
 
  
 

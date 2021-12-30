@@ -76,8 +76,11 @@
     let result = simulate(party,enemy);
 
     let resultStr = '';
-    resultStr += `Party win chances: ${result.stats.party.winsPC}%<br>with ${result.stats.party.avgAlivePC}% alive`;
-    resultStr += `<br><br>(estimated: ${result.initStats.partyEstimatedWin})`;
+    resultStr += `<b>Simulated party wins: ${result.stats.party.winsPC}%`
+    resultStr += `<br>Party members alive: ${result.stats.party.avgAlivePC}%`
+    resultStr += `<br>Party health: ${result.stats.party.avgHealthPC}%</b>`;
+    resultStr += `<br><br>(Diffic: ${result.initStats.bookDifficulty}%, `;
+    resultStr += `WinProb: ${result.initStats.partyEstimatedWin})`;
 
     document.querySelector("#result").innerHTML = resultStr;
 

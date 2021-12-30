@@ -1,6 +1,8 @@
 
 
 /*
+Player: 10HP, 2 Attack (basic with weapon)
+
 Commoners 2 HP, 1 Attack. (x12, 100%)
 Minions 4 HP, 2 Attack.
 Bosses 10 HP, 4 Attack.
@@ -56,7 +58,8 @@ function simulate(party, enemy) {
   // initStats.partyEstimatedWin =  (initStats.party.potential / initStats.enemy.potential / party.length * enemy.length).toFixed(2);
   let p = initStats.party; let e = initStats.enemy;
   
-  initStats.partyEstimatedWin =  ( ((p.sumHP/e.sumAttack) / (e.sumHP/p.sumAttack)) / party.length * enemy.length).toFixed(2);
+  initStats.bookDifficulty =  ((e.sumHP+e.sumAttack+enemy.length)/p.sumHP*100).toFixed(2);
+  initStats.partyEstimatedWin =  ( ((p.sumHP/e.sumAttack) / (e.sumHP/p.sumAttack)) / party.length * enemy.length /2).toFixed(2);
 
 
 
@@ -126,7 +129,11 @@ function simulate(party, enemy) {
 
     } // 1 combat
     let winner = inst.party.length > inst.enemy.length ? 'party' : 'enemy';
-    winners.push({winner:winner, alive: inst[winner].length});
+    winners.push({
+      winner:winner, 
+      alive: inst[winner].length,
+      health: inst[winner].reduce( (prev,curr)=>prev+curr.hp, 0),
+    });
     //console.log('winner', winner);
     // console.log(inst.party);
     // console.log(inst.enemy);
@@ -136,22 +143,25 @@ function simulate(party, enemy) {
   // console.log('winners', winners)
 
   let stats = {
-    party:{wins:0, winsPC:0, avgAlive:0, avgAlivePC:0},
-    enemy:{wins:0, winsPC:0, avgAlive:0, avgAlivePC:0},
-    
+    party:{wins:0, winsPC:0, avgAlive:0, avgAlivePC:0, avgHealth:0, avgHealthPC:0},
+    enemy:{wins:0, winsPC:0, avgAlive:0, avgAlivePC:0, avgHealth:0, avgHealthPC:0},
   }
 
   winners.forEach(w=>{
     stats[w.winner].wins++;
     stats[w.winner].avgAlive += w.alive;
+    stats[w.winner].avgHealth += w.health;
   });
 
   stats.party.avgAlive = (stats.party.avgAlive / stats.party.wins).toFixed(1);
   stats.party.avgAlivePC = Math.floor(stats.party.avgAlive / party.length * 100);
+  stats.party.avgHealth = (stats.party.avgHealth / stats.party.wins).toFixed(1);
+  stats.party.avgHealthPC = Math.floor(stats.party.avgHealth / initStats.party.sumHP * 100);
   stats.party.winsPC = Math.floor(stats.party.wins / combats * 100);
-  stats.enemy.avgAlive = (stats.enemy.avgAlive / stats.enemy.wins).toFixed(1);
-  stats.enemy.avgAlivePC = Math.floor(stats.enemy.avgAlive / enemy.length * 100);
-  stats.enemy.winsPC = Math.floor(stats.enemy.wins / combats * 100);
+
+  // stats.enemy.avgAlive = (stats.enemy.avgAlive / stats.enemy.wins).toFixed(1);
+  // stats.enemy.avgAlivePC = Math.floor(stats.enemy.avgAlive / enemy.length * 100);
+  // stats.enemy.winsPC = Math.floor(stats.enemy.wins / combats * 100);
 
 
   // console.log(stats);
