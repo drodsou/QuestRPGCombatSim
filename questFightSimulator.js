@@ -36,9 +36,8 @@ enemy = party, 4 enem, 52%/47%
 //   ])
 // );
 
+function getInitStats(party, enemy) {
 
-function simulate(party, enemy) {
-  
   let initStats = {
     party: { 
       sumHP: party.reduce( (prev,curr)=>prev + curr.hp, 0),
@@ -49,29 +48,48 @@ function simulate(party, enemy) {
       sumAttack: enemy.reduce( (prev,curr)=>prev + curr.attack, 0),
     }
   }
-  initStats.party.potential = initStats.party.sumAttack / initStats.enemy.sumHP
-  initStats.enemy.potential = initStats.enemy.sumAttack / initStats.party.sumHP
 
-  initStats.totalPotential = initStats.party.potential + initStats.enemy.potential;
-
-
-  // initStats.partyEstimatedWin =  (initStats.party.potential / initStats.enemy.potential / party.length * enemy.length).toFixed(2);
-  let p = initStats.party; let e = initStats.enemy;
+  let p = initStats.party,  e = initStats.enemy;
+  p.len = party.length;
+  e.len = enemy.length;
   
-  initStats.bookDifficulty =  ((e.sumHP+e.sumAttack+enemy.length)/p.sumHP*100).toFixed(2);
-  initStats.partyEstimatedWin =  ( ((p.sumHP/e.sumAttack) / (e.sumHP/p.sumAttack)) / party.length * enemy.length /2).toFixed(2);
+  initStats.bookDifficulty =  ( ( (e.sumHP + e.sumAttack + e.len) / p.sumHP) * 100).toFixed(2);
 
+  // initStats.partyEstimatedWin =  ( ((p.sumHP/e.sumAttack) / (e.sumHP/p.sumAttack)) / party.length * enemy.length).toFixed(2);
+  
+  p.power = p.sumHP * p.sumAttack * (p.len < e.len ? 1.5 : 1);
+  e.power = e.sumHP*e.sumAttack  * (e.len < p.len ? 1.5 : 1); 
+
+  p.overPower =  (( p.power >= e.power ? p.power/e.power : -1 * e.power/p.power)  ).toFixed(2);
+  //p.overPower =  (p.power / e.power).toFixed(2);
+
+  let opWinChance = (op)=>{
+    if (op <= -4.0) return 1;
+    if (op <= -2.0) return 4;
+    if (op <= -1.5) return 28;
+    if (op <= 1.00) return 55;
+    if (op <= 1.50) return 75;
+    if (op <= 2.00) return 97;
+    if (op <= 4.00) return 99;
+  };
+
+  p.opWinChance = opWinChance(p.overPower);
 
 
   // console.log(initStats)
 
+  return initStats;
+
+}
 
 
 
+function simulate(party, enemy) {
+  
+  
 
 
-
-  let combats = 1000;
+  let combats = 10000;
 
   let winners = [];
   for (let combat = 1; combat <= combats; combat++) {
@@ -153,10 +171,14 @@ function simulate(party, enemy) {
     stats[w.winner].avgHealth += w.health;
   });
 
-  stats.party.avgAlive = (stats.party.avgAlive / stats.party.wins).toFixed(1);
-  stats.party.avgAlivePC = Math.floor(stats.party.avgAlive / party.length * 100);
-  stats.party.avgHealth = (stats.party.avgHealth / stats.party.wins).toFixed(1);
-  stats.party.avgHealthPC = Math.floor(stats.party.avgHealth / initStats.party.sumHP * 100);
+  if (stats.party.wins > 0) { 
+    stats.party.avgAlive = (stats.party.avgAlive / stats.party.wins).toFixed(1); 
+    stats.party.avgAlivePC = Math.floor(stats.party.avgAlive / party.length * 100);
+    stats.party.avgHealth = (stats.party.avgHealth / stats.party.wins).toFixed(1);
+  }
+  
+  let initPartyHP = party.reduce( (prev,curr)=>prev + curr.hp, 0);
+  stats.party.avgHealthPC = Math.floor(stats.party.avgHealth / initPartyHP * 100);
   stats.party.winsPC = Math.floor(stats.party.wins / combats * 100);
 
   // stats.enemy.avgAlive = (stats.enemy.avgAlive / stats.enemy.wins).toFixed(1);
@@ -165,7 +187,7 @@ function simulate(party, enemy) {
 
 
   // console.log(stats);
-  return {initStats, stats}
+  return stats
 
 } // simulate function  
 
@@ -174,9 +196,13 @@ function simulate(party, enemy) {
 /// ---- HELPERS
 
 function roll() {
-  return Math.floor( Math.random() * 20 ) + 1;
+  return Math.ceil( Math.random() * 20 );
 }
 
+
+/**
+ * Attack and calculate consequences
+*/
 function attack(attacker, defender) {
   let DEBUG = false;
   let rolled = roll();
@@ -186,13 +212,19 @@ function attack(attacker, defender) {
     DEBUG && console.log(attacker.name, 'crits', defender.name);
     defender.hp -= (attacker.attack * 2);
   }
-  if (rolled >= 6 && rolled < 20) {
+
+  if (rolled >= 11 && rolled <= 19) {
     DEBUG && console.log(attacker.name, 'hits', defender.name);
     defender.hp -= attacker.attack;
   }
+
+  if (rolled >= 6 && rolled <=10) {
+    DEBUG && console.log(attacker.name, 'hits with consecuences', defender.name);
+    defender.hp -= attacker.attack/2; // eg hits small defender armor
+    // or maybe hits full but gets stuck for the next move, choice. Maybe
+  }
   if (rolled >= 2 && rolled <= 5) {
     DEBUG && console.log(attacker.name, 'fails', defender.name);
-    attacker.hp -= defender.attack/2;
   }
   if (rolled == 1) {
     DEBUG && console.log(attacker.name, 'critfails', defender.name);

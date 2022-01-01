@@ -1,9 +1,26 @@
 # Quest RPG combat simulator
 
-A personal rough simulation of Quest RPG combat, to give an idea of how hard a combat would be
+A personal rough simulation of Quest RPG combat, to give an idea of how hard a combat would be. 
+
+Enter team members writing one line per member: `HitPoints,AttackPower`, eg `10,2` for normal player.
 
 ## Method
-1000 combats are simulated on each fight. Only basic attacks simulated. Rules: when rolled 1, receives dmg equal to full target attack. When rolled 2-5, recives half of that dmg.
+
+10000 combats are simulated on each fight, giving a +-1% accuracy. Only basic attacks simulated. Rules in `attack` function in `questFightSimulator.js` file. Damage done on roll:
+- 20: attack * 2
+- 11-19: attack
+- 6-10: attack /2
+- 2-5: 0
+- 1: receives normal deffender attack
+
+## Simulating abilites
+
+As said, the simulation runs on basic attacks only, but `abilities` can change a sure loss in a unexpected win, eg one wizard's Magic Strike full of APs could make 20 ensured damage by itself in a fight, ie the full health of a "big boss" as described in the book. 
+
+To try to simulate this case, 4 ensured dmg per round is aprox. equivalent to `4 / 0.625 = 6.4` dice rolled dmg, so a `10,6.4`
+
+Also other abilities can change the outcome of a combat without need for matching combat power in other ways: mind control, distraction, impersonation, fear, etc... and preciselly these open unexpected uses, or GM creative application of consecuences of critical fails or successes with tough choices are the ones that can create unexpected plot twists and potentiallty bring the real fun and amusement to the game much more than raw weapon combat.
+
 
 ## Manual estimation of difficulty
 
@@ -19,24 +36,22 @@ Given:
 
 The formulas are as follow:
 
-## Manual estimation: book difficulty
+## Manual estimation: book difficulty rating
 
 `(eHP+eAt+eNum)/pHP*100`
 
 Quoting from book: If the difficulty rating is roughly equal to 100% of party's HP, it is a deadly fight that will push their limits.If the difficulty rating is between 50% to 80% of the party's HP, it is still deadly, but should be a fair fight.
 
-## Manual estimation: alternative party win probability
+## Manual alternative estimation: party overpower
 
-My own estimator, seen the the official estimation did not match simulation results too well in some cases:
+My own estimator, seen the the official estimation did not match simulation results too well in some cases. The idea comes from finding the minimal number of rounds that each team can zero the HP of the other, and then comparing both: `(pHP/eAt) / (eHP/pAt)`. But is mathematically equivalent, moving factors around, and mentally easier to calculate, the concept of `power` for each team, party: `pHP*pAt` and enemy: `eHP*eAt`.
 
-`(pHP/eAt) / (eHP/pAt) / pNum * eNum / 2`
+If a team has LESS number of members we give 50% additional power (`power*1.5`) as has seen from the simulation that having more members with same total power is worse, as attack power decreases as members die). Note that this the opposite direction of the book Difficiculty Rating calculation.
 
+Finally `dividing the power of the more powerfull team by the other` we arrive to the concept of `overpower`, where if is 1, obbiously chances of winning would be equal for both teams (50%), even though in practice is a little more for the players as usuarlly roll first. Other `overpower values`, correlate with simulation win chances this way::
 
-Basically, dividing number of attacks needed by enemies to kill party, by number of attacks needed by party to kill enemies, and then adjusted to the number of enemies, as seen in the simulations that 1 powerful enemy is much difficult than 4 enemies with the same sum of HP and Attack, contrary to what the book difficulty rating suggests. Finally divided by 2 as it was seen to match fit simulation results more directly.
+- 1: 55%, 1.5: 75%, 2: 97%, 4: 99%
 
-WinProb estimation does not perfectly match simulation results either, but serves as a better correlation with actual simulation results. A result of >1 is easy win. 0.5-1 probable win with some struggle. 0.25-0.50 hard fight probable to lose. Bellow 0.25 almost sure loss.
-
- 
 
 ## Quest RPG
 

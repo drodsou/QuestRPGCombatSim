@@ -11,21 +11,30 @@
       font-size: 14px;
       font-family: sans-serif;
       --color-high: hsl(0,100%,35%);
+      --fs-text: 1.25rem;
     }
     h1,h2 {
       color: var(--color-high); 
     }
-    #result {
-      font-size: 1.5rem;
-    }
-    #enemy,#party {
-      font-size: 1.5rem;
-      width: 100%;
-      min-height: 180px;
-    }
+
     #dataContainer {
       display: flex;
     }
+
+    #enemy,#party {
+      font-size: var(--fs-text);
+      width: 100%;
+      min-height: 140px;
+    }
+
+    #immediate {
+      padding-top: 10px;
+      min-height: 140px;
+      font-size: var(--fs-text);
+    }
+
+    #buttonContainer {
+     }
     button {
       font-size: 2rem;
       color: white;
@@ -33,11 +42,17 @@
       border:0;
     }
 
+    #result {
+      padding-top: var(--fs-text);
+      font-size: var(--fs-text);
+    }
+
+
   </style>
 </head>
 <body>
   <h1>Quest RPG combat sim</h1>
-  On line for each member of party/enemies: eg 10,2 means 10 health, and 2 attack. 
+  One line for each member of party/enemies: eg 10,2 means 10 health, and 2 attack. 
   <a href="https://github.com/drodsou/QuestRPGCombatSim">Source in github</a>
   
   <div id="dataContainer">
@@ -51,12 +66,50 @@
       <textarea id="enemy">4,2&#10;2,1&#10;2,1&#10;</textarea>
     </div>
   </div>
-  <br><button id="go" onclick="fight()">Fight!</button><br>
-  <p id="result"></p>
+  <div id="immediate"></div>
+  <div id="buttonContainer">
+      <button id="go" onclick="fight()">Fight!</button>
+  </div>
+  <div id="result"></div>
 
 
 </body>
 <script>
+
+  let app = {
+    party: [],
+    enemy: []
+  }
+
+  document.querySelector('#dataContainer').addEventListener('keyup', immediateCalc);
+  immediateCalc();
+
+  // ---
+
+  function immediateCalc() {
+
+    document.querySelector("#result").innerHTML = '';
+
+    try {
+      app.party = parseData(document.querySelector('#party').value,'p');
+      app.enemy = parseData(document.querySelector('#enemy').value,'e');
+    } catch(e) {
+      document.querySelector("#immediate").innerHTML = 'invalid data';
+      return;
+    }
+
+    let initStats = getInitStats(app.party, app.enemy);
+    let str = '';
+    str += `Difficulty rating: ${initStats.bookDifficulty}% of party HP`;
+
+    str += `<br><br>Party power: ${initStats.party.power}`;
+    str += ` | Enemy power: ${initStats.enemy.power}`;
+    str += `<br>Party overpower: ${initStats.party.overPower}`;
+    str += `<br><b>Estimated party win chance: ${initStats.party.opWinChance}</b>%`;
+    
+    document.querySelector("#immediate").innerHTML = str;
+
+  }
 
   function parseData(str, prefix) {
     let data = str.trim().split('\n').map( (line, lineNum)=>{
@@ -67,21 +120,26 @@
         attack: parseFloat(actorData[1]),
       }
     });
+
+    data.forEach(r=>{
+      if (isNaN(r.hp) || isNaN(r.attack)) throw new Error('parseData#1')
+    });
+    
     return data;
   }
+
+
   function fight() {
 
-    let party = parseData(document.querySelector('#party').value,'p');
-    let enemy = parseData(document.querySelector('#enemy').value,'e');
-
-    let result = simulate(party,enemy);
+    let result = simulate(app.party, app.enemy);
 
     let resultStr = '';
-    resultStr += `<b>Simulated party wins: ${result.stats.party.winsPC}%`
-    resultStr += `<br>Party members alive: ${result.stats.party.avgAlivePC}%`
-    resultStr += `<br>Party health: ${result.stats.party.avgHealthPC}%</b>`;
-    resultStr += `<br><br>(Diffic: ${result.initStats.bookDifficulty}%, `;
-    resultStr += `WinProb: ${result.initStats.partyEstimatedWin})`;
+    resultStr += `<b>Simulated party wins: ${result.party.winsPC}%</b>`
+    resultStr += `<br>Party members alive: ${result.party.avgAlivePC}%`
+    resultStr += `<br>Party health: ${result.party.avgHealthPC}%`;
+    
+
+    
 
     document.querySelector("#result").innerHTML = resultStr;
 
