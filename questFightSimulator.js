@@ -36,6 +36,9 @@ enemy = party, 4 enem, 52%/47%
 //   ])
 // );
 
+const DEBUG = false;
+
+
 function getInitStats(party, enemy) {
 
   let initStats = {
@@ -89,7 +92,7 @@ function simulate(party, enemy) {
   
 
 
-  let combats = 10000;
+  let combats = DEBUG ? 1 : 1000;
 
   let winners = [];
   for (let combat = 1; combat <= combats; combat++) {
@@ -104,57 +107,52 @@ function simulate(party, enemy) {
     }
 
     let round = 0;
-    while (inst.bothAlive()) {
+    roundLoop: while (inst.bothAlive()) {
       round++;
       // console.log('-- round', round, 'party', inst.party.length, 'enemy', inst.enemy.length);
-      let maxActors = inst.party.length >= inst.enemy.length ? inst.party.length : inst.enemy.length;
-
-      let targetIndex
-      for (let actor = 0; actor < maxActors; actor++) {
-
-        // -- party
-        if (inst.party[actor]) {
-          let enemyTarget = Math.floor( Math.random() * inst.enemy.length )
-          // console.log('enemyTarget',enemyTarget);
-          
-          attack(inst.party[actor], inst.enemy[enemyTarget])
-
-          inst.party = inst.party.filter(x=>x.hp>0);
-          inst.enemy = inst.enemy.filter(x=>x.hp>0);
-          if (!inst.bothAlive()) {
-            break;
-          }
+      
+      // -- party turn
+      for (let actor = 0; actor < inst.party.length; actor++) {
+        let enemyTarget = getTarget(inst.enemy, inst.party[actor].attack);
+        // console.log('enemyTarget',enemyTarget);
+        
+        attack(inst.party[actor], inst.enemy[enemyTarget])
+        
+        inst.party = inst.party.filter(x=>x.hp>0);
+        inst.enemy = inst.enemy.filter(x=>x.hp>0);
+        DEBUG && logState(inst.party, inst.enemy);
+        if (!inst.bothAlive()) {
+          break roundLoop;
         }
-
-        // // enemy
-        if (inst.enemy[actor]) {
-          let partyTarget = Math.floor( Math.random() * inst.party.length )
+      }
+      
+      // -- enemy turn
+      for (let actor = 0; actor < inst.enemy.length; actor++) {
+        let partyTarget = getTarget(inst.party, inst.enemy[actor].attack);
         // console.log('partyTarget',partyTarget);
           
-          attack(inst.enemy[actor], inst.party[partyTarget])
-
-          inst.party = inst.party.filter(x=>x.hp>0);
-          inst.enemy = inst.enemy.filter(x=>x.hp>0);
-          if (!inst.bothAlive()) {
-            break;
-          }
-
+        attack(inst.enemy[actor], inst.party[partyTarget])
+        
+        inst.party = inst.party.filter(x=>x.hp>0);
+        inst.enemy = inst.enemy.filter(x=>x.hp>0);
+        DEBUG && logState(inst.party, inst.enemy);
+        if (!inst.bothAlive()) {
+          break roundLoop;
         }
+      }
 
-      } // round
-      
+    } // rounds
     
+    // -- 1 combat done
 
-    } // 1 combat
     let winner = inst.party.length > inst.enemy.length ? 'party' : 'enemy';
     winners.push({
       winner:winner, 
       alive: inst[winner].length,
       health: inst[winner].reduce( (prev,curr)=>prev+curr.hp, 0),
     });
-    //console.log('winner', winner);
-    // console.log(inst.party);
-    // console.log(inst.enemy);
+    DEBUG && console.log('winner', winner);
+
 
   } // combats
 
@@ -199,12 +197,37 @@ function roll() {
   return Math.ceil( Math.random() * 20 );
 }
 
+function getTarget(defender, attackPower) {
+  // let target = Math.floor( Math.random() * defender.length );
+
+  // select target: prioritize enemies with hp bellow my attack who have the bigger attack
+  let target = 0;
+  for (let n=1; n<defender.length; n++) {
+    if ( (defender[target].hp > attackPower && defender[n].hp < defender[target].hp)
+      || (defender[target].hp <= attackPower && defender[n].attack > defender[target].attack)
+    
+    ) {
+      target =n;
+    }
+  }
+  return target
+
+}
+
+
+function logState(team1, team2) {
+  let str = '-> '
+  team1.forEach(t=> str += (t.name+':'+t.hp+' ') );
+  str += '| '
+  team2.forEach(t=> str += (t.name+':'+t.hp+' ') );
+  console.log(str);
+}
 
 /**
  * Attack and calculate consequences
 */
 function attack(attacker, defender) {
-  let DEBUG = false;
+
   let rolled = roll();
   // console.log(attacker.name, 'rolled', rolled);
 
@@ -220,20 +243,23 @@ function attack(attacker, defender) {
 
   if (rolled >= 6 && rolled <=10) {
     DEBUG && console.log(attacker.name, 'hits with consecuences', defender.name);
-    defender.hp -= attacker.attack/2; // eg hits small defender armor
+    defender.hp -= attacker.attack; 
+    attacker.hp -= attacker.attack/2; 
     // or maybe hits full but gets stuck for the next move, choice. Maybe
   }
   if (rolled >= 2 && rolled <= 5) {
     DEBUG && console.log(attacker.name, 'fails', defender.name);
+    attacker.hp -= attacker.attack/2; 
   }
   if (rolled == 1) {
     DEBUG && console.log(attacker.name, 'critfails', defender.name);
-    attacker.hp -= (defender.attack);
+    let counterRoll = roll();
+    if (counterRoll >= 6) {  attacker.hp -= (defender.attack) };
   }
+
   if (defender.hp <= 0) {
     DEBUG && console.log(': ', attacker.name, 'KILLS', defender.name);
   }
-
   if (attacker.hp <= 0) {
     DEBUG && console.log(': ', defender.name, 'CAUSES DEATH OF', attacker.name);
   }
