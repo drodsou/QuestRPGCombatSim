@@ -249,12 +249,12 @@ function attack(attacker, defender) {
   }
   if (rolled >= 2 && rolled <= 5) {
     DEBUG && console.log(attacker.name, 'fails', defender.name);
-    attacker.hp -= attacker.attack/2; 
+    // attacker.hp -= 0; 
   }
   if (rolled == 1) {
     DEBUG && console.log(attacker.name, 'critfails', defender.name);
     let counterRoll = roll();
-    if (counterRoll >= 6) {  attacker.hp -= (defender.attack) };
+    if (counterRoll >= 10) {  attacker.hp -= (defender.attack) };
   }
 
   if (defender.hp <= 0) {
